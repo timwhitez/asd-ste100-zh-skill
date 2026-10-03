@@ -415,6 +415,21 @@ def selftest():
     # per-file labels
     findings, _ = lint("a; b", filename="x.md")
     assert findings[0]["file"] == "x.md"
+    # CLI boundary regressions: rejected input must not carry a false clean report.
+    from io import StringIO
+    from unittest.mock import patch
+    for text, expected in (("\u3007", 2), ("\U000323b0", 2), ("\U00033479", 2),
+                           ("\U0003347f", 2), ("\u3006", 0), ("\u3008", 0),
+                           ("\U00033480", 0), ("Check the config.", 0),
+                           ("Spin up the job;", 1)):
+        with patch("sys.stdin", StringIO(text)), patch("sys.stdout", StringIO()) as output:
+            result = main(["--json"])
+        data = json.loads(output.getvalue())
+        assert result == expected, (repr(text), result, data)
+        if expected == 2:
+            assert data["status"] == "not_checked" and "hard_count" not in data, data
+        else:
+            assert "status" not in data, data
     print("selftest OK")
 
 
@@ -443,7 +458,7 @@ def main(argv):
         ("<stdin>", sys.stdin.read())
     ]
     # This boundary guard prevents a false Chinese pass; it is not a Chinese linter.
-    if any(re.search(r"[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff\U00020000-\U000323af]", value)
+    if any(re.search(r"[\u3007\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff\U00020000-\U0003347f]", value)
            for _, value in inputs):
         message = "English-only linter: Han characters detected; input not checked."
         if as_json:
