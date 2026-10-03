@@ -1,10 +1,52 @@
 ---
-name: asd-ste100
-description: "Use when English text must be parsed without a human to resolve ambiguity — tool descriptions, error messages, inter-agent instructions, system prompts, status reports — and misreading has a real cost, or when text reads as dense, hedged, or easy to misparse. Triggers: disambiguate, STE100 rewrite, apply Simplified Technical English, plain-language rewrite, controlled-language rewrite, rewrite so an agent cannot misread this. Not for creative or marketing copy."
-version: 0.4.0
+name: asd-ste100-zh
+description: "默认用中文撰写或改写清晰、无歧义的技术说明、操作步骤、错误信息、技术报告和工具描述。保留术语、条件、风险、义务强度和事实；适用于简化技术输出、消除歧义或明确要求 asd-ste100-zh 的任务。不用于创意或营销文案，不提供 ASD-STE100 中文合规认证。"
+metadata:
+  version: 0.1.0
+  upstream-version: 0.4.0
 ---
 
-# Simplified Technical English (ASD-STE100)
+# 中文技术清晰写作（ASD-STE100 原则适配）
+
+源自 [danyuchn/asd-ste100-skill](https://github.com/danyuchn/asd-ste100-skill)，基线版本 0.4.0，提交 `7d4a135a199a5d7447c4886bcd7ffe742a627bc9`。上游版权与 MIT 许可见 [LICENSE](LICENSE)。本项目是独立中文清晰写作适配，不是 ASD 官方中文标准、认证翻译或 ASD-STE100 符合性保证。
+
+## 语言与适用范围
+
+默认输出中文，适用于技术说明、操作步骤、技术报告、错误信息和工具描述。用户明确指定输出语言时，遵循该要求。不要擅自翻译代码、命令、路径、标识符、产品名称、英文原文引用或指定保留的英文片段；解释文字可用中文。领域术语有通行中文译法时可使用，必要时首次附英文；同一概念保持同一名称，不把不同概念合并成同一个词。
+
+中文或中英混合输出使用下面的中文规则与流程。**跳过后面的英文规则、Strict / STE-flavored 模式及其英文示例**；其中的英语词数、词性、时态、短语动词、受控词典限制不适用于中文。不要把 20 words 换成 20 个汉字。仅当用户明确要求纯英文改写时，使用后面的英文分支。该分支也不能保证官方 STE 合规。
+
+默认自然简洁，以消除歧义为目标，不逐句机械套用规则。操作说明和安全文本需要更严格地检查条件、动作和风险。
+
+## 中文改写规则
+
+- 先理解原意，再简化表达。保留事实、条件、否定、范围、例外、顺序、比较关系、数值、单位和标识符。没有依据时，不补充原因、频率、机制或操作。
+- 明确谁做什么，优先使用直接动词，例如“检查日志”，而不是“进行日志的检查”。原文未说明执行者时，不凭空指定；能从上下文确定才补全。
+- 每句集中表达一个动作或主要判断。必要条件写在对应动作前，例如“仅当备份完成且校验通过时，才删除源文件”。拆句时保留“且 / 或 / 仅当 / 除非”等逻辑关系，避免把条件写成无条件命令。
+- 把风险与禁止事项放在相关操作前。保留风险的严重性、发生条件与可能性；不得为简短而删除安全限制。原文缺少必要安全条件时，标明缺失，不编造安全操作规程。
+- 保留要求强度和置信度：“必须 / 不得”“应当 / 建议”“可以”“可能 / 通常 / 已确认”各有含义。不要把“应当”改成强制命令，把“可能”改成必然，或把“可以”改成“必须”。只有同义且不损失信息时才删除重复缓和语。
+- 使用准确、常用的词；必要专业术语保留并按读者需要解释。不要为了口语化而换掉有特定技术含义的名称。保留表达时间、状态和不确定性所需的“已 / 正在 / 将 / 曾”等信息。
+- 一段集中讨论一个主题。多步骤操作按执行顺序列出；并列条件保持其组合关系。优先拆开过密句子，但不设机械字数上限；中文分号并非一律禁止。精度优先于短句。
+- 删除没有信息的套话；不要把未量化的评价改写成凭空编造的指标。对不清楚的原文，保留歧义并指出需要澄清的关键点，不猜测作者想法。
+
+## 中文流程与输出
+
+1. 阅读原文，确认主体、动作、条件、风险、范围和要求强度。写作任务以用户提供的事实为依据。
+2. 按中文规则改写。参考 [examples/before-after.md](examples/before-after.md) 的中文示例；英文示例不是中文规则。
+3. 将改写逐项对照原文，检查事实和逻辑是否保留，特别是条件的作用范围、否定、例外、数值单位、引用和置信度。仅靠词匹配不能完成这一步。
+4. 默认只输出可直接使用的中文正文。不添加模式说明、违规数量或“合规 / PASS”结论。原文已经清楚时，保留原文；若用户询问检查结果，可说明无需修改。
+5. 必须保留较长表达以避免信息损失时，可在正文后加一行“保留说明：……”。存在阻碍准确改写的歧义或缺失信息时，简短说明问题；必要时向用户澄清。
+6. 用户要求对比或解释时，用“调整依据 / 原文 / 改写”表格说明中文规则与具体变化，避免宣称违反了官方中文 STE 规则。用户要求补充建议时，把新增建议明确标为建议，与原文改写分开。
+
+`scripts/ste-lint.py` 仅是英语启发式检查器，不检查中文语义或中文合规性。含汉字输入的 CLI 检查会返回退出码 2（未检查），英文片段需单独提取后检查。其 `lint()` 内部函数仍是上游英语算法，不是中文检查接口。纯英文返回 0 也只表示配置的英语结构检查未发现硬问题，不代表保真、词典检查或官方符合性。不要为中文自动生成合规证书。
+
+本仓库不提供官方规范全文或受控词典。MIT 覆盖本仓库可许可的代码与说明，不授予 ASD 官方规范、词典、PDF 或第三方材料的再分发权。需要官方符合性时，使用从官方合法取得的标准和适当的人工评审。
+
+---
+
+# English-only branch — Simplified Technical English (ASD-STE100)
+
+以下内容保留上游英文方法与引用，仅用于用户明确要求的纯英文改写。中文与中英混合输出到此为止，不把下面的英语规则作为中文约束。
 
 ASD-STE100 is a controlled-language standard built by the aerospace and defense industry (ASD, the AeroSpace and Defense Industries Association of Europe) to stop maintenance technicians from misreading English instructions. The standard removes the two biggest sources of misreading: words with more than one meaning, and sentences with more than one possible structure.
 
