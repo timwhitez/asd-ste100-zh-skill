@@ -1,3 +1,5 @@
+> 英文分支参考：本文保留上游的规则类别概述和来源，不是中文规则或当前官方全文的核验记录。中文输出使用 SKILL.md 的中文规则；英文词数、时态、词性和词典约束不移植到中文。
+
 # ASD-STE100 Writing Rules — Summary and Sources
 
 This file summarizes the public, official description of ASD-STE100 (Simplified Technical English). It paraphrases rule *categories*. It does not reproduce the standard's text or its ~900-word dictionary verbatim. For the authoritative document, request the free download at the official site.

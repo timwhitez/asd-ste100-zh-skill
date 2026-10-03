@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Deterministic linter for the structural STE rules in SKILL.md.
+"""English-only heuristic linter for the upstream structural STE rules.
 
 Checks only rules verifiable without ASD's dictionary. Deliberately never
 flags hedges or modality (may/might/could): the skill treats confidence as
@@ -11,6 +11,9 @@ Usage:
     ste-lint.py --baseline 5 FILE      # pass unless hard violations exceed 5
     ste-lint.py --disable passive-voice,present-perfect FILE
     ste-lint.py --selftest
+
+Exit 2 for CLI input containing Han characters (not checked).
+The internal lint() function remains English-only and has no language guard.
 
 Exit 1 when hard ("advisory-free") violations exceed the baseline (default 0).
 Advisory findings (passive voice, compound tenses) never fail the run.
@@ -412,6 +415,21 @@ def selftest():
     # per-file labels
     findings, _ = lint("a; b", filename="x.md")
     assert findings[0]["file"] == "x.md"
+    # CLI boundary regressions: rejected input must not carry a false clean report.
+    from io import StringIO
+    from unittest.mock import patch
+    for text, expected in (("\u3007", 2), ("\U000323b0", 2), ("\U00033479", 2),
+                           ("\U0003347f", 2), ("\u3006", 0), ("\u3008", 0),
+                           ("\U00033480", 0), ("Check the config.", 0),
+                           ("Spin up the job;", 1)):
+        with patch("sys.stdin", StringIO(text)), patch("sys.stdout", StringIO()) as output:
+            result = main(["--json"])
+        data = json.loads(output.getvalue())
+        assert result == expected, (repr(text), result, data)
+        if expected == 2:
+            assert data["status"] == "not_checked" and "hard_count" not in data, data
+        else:
+            assert "status" not in data, data
     print("selftest OK")
 
 
@@ -436,14 +454,27 @@ def main(argv):
             paths.append(a)
         i += 1
 
+    inputs = [(p, open(p, encoding="utf-8").read()) for p in paths] if paths else [
+        ("<stdin>", sys.stdin.read())
+    ]
+    # This boundary guard prevents a false Chinese pass; it is not a Chinese linter.
+    if any(re.search(r"[\u3007\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff\U00020000-\U0003347f]", value)
+           for _, value in inputs):
+        message = "English-only linter: Han characters detected; input not checked."
+        if as_json:
+            print(json.dumps({"status": "not_checked", "message": message}))
+        else:
+            print(message)
+        return 2
+
     findings, words_total = [], 0
     if paths:
-        for p in paths:
-            f, w = lint(open(p, encoding="utf-8").read(), filename=p)
+        for p, value in inputs:
+            f, w = lint(value, filename=p)
             findings.extend(f)
             words_total += w
     else:
-        findings, words_total = lint(sys.stdin.read())
+        findings, words_total = lint(inputs[0][1])
 
     findings = [f for f in findings if f["rule"] not in disabled]
     hard_count = sum(1 for f in findings if f["level"] == "advisory-free")
