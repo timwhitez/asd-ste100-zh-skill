@@ -28,7 +28,7 @@ git clone https://github.com/timwhitez/asd-ste100-zh-skill.git ~/.claude/skills/
 用 asd-ste100-zh 消除歧义，并给出原文与改写的对比。
 ```
 
-默认只返回可直接使用的正文。需要解释时，要求“说明修改依据”或“展示前后对比”。英文片段、代码、命令、路径、标识符和原文引用不会擅自翻译。技能按交付文本的语言路由：要求交付纯英文（包括中文输入要求英文输出），或改写、检查英文文本且没有要求译成中文时，才读取 [references/english-workflow.md](references/english-workflow.md) 中保留的上游英文工作流（Strict / STE-flavored），解释文字仍可使用用户的语言。中文或中英混合交付只使用 [SKILL.md](SKILL.md) 的中文规则，中文里的命令、代码或英文引文不会触发英文规则。
+默认只返回可直接使用的正文。需要解释时，要求“说明修改依据”或“展示前后对比”。英文片段、代码、命令、路径、标识符和原文引用不会擅自翻译。技能按交付文本的语言路由：要求交付纯英文（包括中文输入要求英文输出），或改写、检查英文文本且没有要求译成中文时，才读取 [references/english-workflow.md](references/english-workflow.md) 中保留的上游英文工作流（Strict / STE-flavored），解释文字仍可使用用户的语言。中文或中英混合交付只使用 [SKILL.md](SKILL.md) 的中文规则，中文里的命令、代码或英文引文不会触发英文规则。撰写新内容且没有指定语言时，默认输出中文。
 
 | 原文 | 改写 |
 |---|---|
