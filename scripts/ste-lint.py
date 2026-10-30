@@ -65,7 +65,7 @@ SYNONYM_GROUPS = [
 
 MAX_WORDS = 25  # descriptions cap; instructions cap is 20 but undetectable without context
 
-CODE_FENCE = re.compile(r"^(```|~~~)")
+FENCE_OPEN = re.compile(r"^(`{3,}|~{3,})")
 INLINE_CODE = re.compile(r"`[^`]*`")
 LIST_ITEM_START = re.compile(
     r"^(?P<indent> {0,3})(?P<marker>[-*+]|[0-9]+[.)])(?P<gap> +)(?P<body>.*)$"
@@ -76,6 +76,29 @@ TABLE_SEPARATOR_CELL = re.compile(r"^:?-{3,}:?$")
 
 def _word_re(base):
     return re.compile(r"\b" + base + r"(?:s|es|ed|d|ing)?\b", re.I)
+
+
+def _fence_step(stripped, fence):
+    """Advance fenced-code state by one stripped line.
+
+    `fence` is None outside a fence, or (marker character, opener length)
+    inside one. Return (new state, whether the line is a fence delimiter).
+    Inside a fence, only a run of the opener's marker character that is at
+    least as long as the opener, with nothing after it, closes the fence. A
+    shorter run, the other marker character, or a run with trailing text is
+    fence content. The caller strips the line, so indentation handling is
+    unchanged. Each scanner keeps its own state.
+    """
+    if fence is None:
+        opener = FENCE_OPEN.match(stripped)
+        if opener:
+            run = opener.group(1)
+            return (run[0], len(run)), True
+        return None, False
+    marker, length = fence
+    if len(stripped) >= length and stripped == marker * len(stripped):
+        return None, True
+    return fence, False
 
 
 def _leading_spaces(line):
@@ -153,16 +176,12 @@ def _markdown_table_cells(lines):
 def _dangling_conjunction_findings(text, filename):
     lines = text.splitlines()
     findings = []
-    in_fence = False
+    fence = None
     index = 0
     while index < len(lines):
         line = lines[index]
-        stripped = line.strip()
-        if CODE_FENCE.match(stripped):
-            in_fence = not in_fence
-            index += 1
-            continue
-        if in_fence:
+        fence, delimiter = _fence_step(line.strip(), fence)
+        if delimiter or fence:
             index += 1
             continue
         start = LIST_ITEM_START.match(line)
@@ -175,16 +194,12 @@ def _dangling_conjunction_findings(text, filename):
                           + len(start.group("gap")))
         item_lines = [(index, start.group("body"))]
         next_index = index + 1
-        item_fence = False
+        item_fence = None
         while next_index < len(lines):
             candidate = lines[next_index]
-            candidate_stripped = candidate.strip()
-            if CODE_FENCE.match(candidate_stripped):
-                # Fence delimiters are state markers, not meaningful item lines.
-                item_fence = not item_fence
-                next_index += 1
-                continue
-            if item_fence:
+            # Fence delimiters are state markers, not meaningful item lines.
+            item_fence, delimiter = _fence_step(candidate.strip(), item_fence)
+            if delimiter or item_fence:
                 next_index += 1
                 continue
             if not _is_list_continuation(candidate, content_indent):
@@ -234,16 +249,14 @@ def _dangling_conjunction_findings(text, filename):
 def lint(text, filename="<stdin>"):
     findings = []
     words_total = 0
-    in_fence = False
+    fence = None
     lines = text.splitlines()
     table_cells = _markdown_table_cells(lines)
     # first occurrence of each synonym-group member: (group_idx, base) -> (line, col, match)
     seen_synonyms = {}
     for lineno, raw_line in enumerate(lines, 1):
-        if CODE_FENCE.match(raw_line.strip()):
-            in_fence = not in_fence
-            continue
-        if in_fence:
+        fence, delimiter = _fence_step(raw_line.strip(), fence)
+        if delimiter or fence:
             continue
         segments = table_cells.get(lineno - 1, [(raw_line, 0)])
         for segment, source_column in segments:
@@ -415,10 +428,51 @@ def selftest():
     # per-file labels
     findings, _ = lint("a; b", filename="x.md")
     assert findings[0]["file"] == "x.md"
+    # Long fences: only a same-marker run at least as long as the opener closes
+    # a fence. The prose scanner, the list-item search, and each list item body
+    # keep separate fence state.
+    def pairs(found):
+        return [(f["rule"], f["line"]) for f in found]
+
+    long_fence = "````\n```\nx = a; y = b\n- code and\n````\n"
+    findings, _ = lint(long_fence)
+    assert findings == [], findings
+    findings, _ = lint(long_fence + "a; b\n- Record the result and")
+    assert pairs(findings) == [("semicolon", 6),
+                               ("dangling-conjunction", 7)], findings
+    item = ("- Run the step\n"
+            "  ````text\n"
+            "  ```\n"
+            "  code and\n"
+            "  ````\n")
+    findings, _ = lint(item + "  then record the result.")
+    assert findings == [], findings
+    findings, _ = lint(item + "  then record the result and")
+    assert pairs(findings) == [("dangling-conjunction", 6)], findings
+    assert findings[0]["col"] == 26, findings
+    # A shorter run, the other marker, or a run with trailing text stays inside.
+    for inner in ("```", "~~~~", "````x", "````` x"):
+        findings, _ = lint("````\n" + inner + "\nx; y\n````\na; b")
+        assert pairs(findings) == [("semicolon", 5)], (inner, findings)
+    findings, _ = lint("```\n```js\nx; y\n```\na; b")
+    assert pairs(findings) == [("semicolon", 5)], findings
+    # A longer close with trailing whitespace closes the fence.
+    findings, _ = lint("````\nx; y\n`````  \na; b")
+    assert pairs(findings) == [("semicolon", 4)], findings
+    # Ordinary three-character fences and an unclosed fence at EOF keep their behavior.
+    findings, _ = lint("~~~\nx; y\n~~~\na; b")
+    assert pairs(findings) == [("semicolon", 4)], findings
+    findings, _ = lint("```\nx; y\n- code and")
+    assert findings == [], findings
+
     # CLI boundary regressions: rejected input must not carry a false clean report.
+    import os
+    import tempfile
     from io import StringIO
     from unittest.mock import patch
-    for text, expected in (("\u3007", 2), ("\U000323b0", 2), ("\U00033479", 2),
+    for text, expected in (("````\n```\nx();\n````\n", 0),
+                           ("````\n```\nx();\n````\n\u8bf4\u660e", 2),
+                           ("\u3007", 2), ("\U000323b0", 2), ("\U00033479", 2),
                            ("\U0003347f", 2), ("\u3006", 0), ("\u3008", 0),
                            ("\U00033480", 0), ("Check the config.", 0),
                            ("Spin up the job;", 1)):
@@ -430,6 +484,23 @@ def selftest():
             assert data["status"] == "not_checked" and "hard_count" not in data, data
         else:
             assert "status" not in data, data
+    # Multi-file batches: an unclosed fence in one file does not hide the next
+    # file, and --baseline / --disable keep their behavior.
+    with tempfile.TemporaryDirectory() as tmp:
+        first = os.path.join(tmp, "first.md")
+        second = os.path.join(tmp, "second.md")
+        with open(first, "w", encoding="utf-8") as handle:
+            handle.write("````\n```\nx();\n")
+        with open(second, "w", encoding="utf-8") as handle:
+            handle.write("a; b\n")
+        for extra, expected in (([], 1), (["--baseline", "1"], 0),
+                                (["--disable", "semicolon"], 0)):
+            with patch("sys.stdout", StringIO()) as output:
+                result = main(["--json"] + extra + [first, second])
+            data = json.loads(output.getvalue())
+            assert result == expected, (extra, result, data)
+            found = [(f["file"], f["line"]) for f in data["violations"]]
+            assert found == ([] if extra[:1] == ["--disable"] else [(second, 1)]), data
     print("selftest OK")
 
 

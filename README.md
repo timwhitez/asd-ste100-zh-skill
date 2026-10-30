@@ -28,20 +28,21 @@ git clone https://github.com/timwhitez/asd-ste100-zh-skill.git ~/.claude/skills/
 用 asd-ste100-zh 消除歧义，并给出原文与改写的对比。
 ```
 
-默认只返回可直接使用的正文。需要解释时，要求“说明修改依据”或“展示前后对比”。英文片段、代码、命令、路径、标识符和原文引用不会擅自翻译。用户明确要求纯英文改写时，才使用保留的上游 English-only 分支（Strict / STE-flavored）。
+默认只返回可直接使用的正文。需要解释时，要求“说明修改依据”或“展示前后对比”。英文片段、代码、命令、路径、标识符和原文引用不会擅自翻译。技能按交付文本的语言路由：要求交付纯英文（包括中文输入要求英文输出），或改写、检查英文文本且没有要求译成中文时，才读取 [references/english-workflow.md](references/english-workflow.md) 中保留的上游英文工作流（Strict / STE-flavored），解释文字仍可使用用户的语言。中文或中英混合交付只使用 [SKILL.md](SKILL.md) 的中文规则，中文里的命令、代码或英文引文不会触发英文规则。撰写新内容且没有指定语言时，默认输出中文。
 
 | 原文 | 改写 |
 |---|---|
 | 在备份完成且校验通过的情况下应当删除源文件，不过只适用于 /tmp/cache。 | 仅当备份完成且校验通过时，应当删除 `/tmp/cache` 中的源文件。 |
 | 请求可能因为客户端版本过旧而失败，目前还没有确认原因。 | 请求可能失败。客户端版本过旧可能是原因。目前尚未确认原因。 |
 
-更多示例见 [examples/before-after.md](examples/before-after.md) 的中文部分。
+更多中文示例见 [examples/before-after.md](examples/before-after.md)。英文示例在 [examples/before-after-en.md](examples/before-after-en.md)，仅由英文工作流引用。
 
 ## 中文适配的边界
 
 - 取消中文不适用的英文词数、词性、时态、短语动词和受控词典要求；不把 20 words 机械换成 20 个汉字，也不一律禁止中文分号。
 - 保留条件的组合关系、顺序、否定、例外、范围、风险、数值单位、标识符，以及“必须 / 应当 / 可以”“可能 / 通常 / 已确认”的强度与置信度。
 - 不凭空补充原因、频率、机制、指标或操作。原文缺失必要信息时指出问题。新增建议需要用户要求，并与改写分开标明。
+- 写作风格参考 OpenAI 的 [GPT-6 Astra 写作风格指引](https://developers.openai.com/api/docs/guides/latest-model#gpt-6-astra-personality-and-writing-style)：用户的明确要求优先；说明和报告先写主要结论；说明性内容优先写成段落；删除套话、原文没有的对比框架和自造标签；只有缺失信息会改变结果时才提问。这些规则不覆盖保真要求。
 - 不用于创意或营销文案，不处理图像或视频生成，不保证改写后的事实为真。
 
 ## 英语检查器
@@ -63,5 +64,6 @@ python3 scripts/ste-lint.py examples/linter-edge-cases.md --json
 - 锁定基线：[`7d4a135a199a5d7447c4886bcd7ffe742a627bc9`](https://github.com/danyuchn/asd-ste100-skill/tree/7d4a135a199a5d7447c4886bcd7ffe742a627bc9)，SKILL.md v0.4.0。
 - 上游 SKILL.md blob：`35579a421ff9b93452ecaf9dd01bbe6e51decff3`。
 - 上游 Git 历史与原 [MIT LICENSE](LICENSE) 完整保留：Copyright (c) 2026 Dustin Yuchen Teng。新增中文说明与代码改动同样以 MIT 许可发布。
-- [references/writing-rules.md](references/writing-rules.md) 保留上游英文规则类别概述与来源，仅供英文分支参考；不是官方全文或当前词典的核验记录。
+- [references/english-workflow.md](references/english-workflow.md) 与 [examples/before-after-en.md](examples/before-after-en.md) 保留上游英文方法、规则表与示例，仅供英文交付文本使用；示例内容未改写。
+- [references/writing-rules.md](references/writing-rules.md) 保留上游英文规则类别概述与来源，仅供英文工作流参考；不是官方全文或当前词典的核验记录。
 - [ASD 官方网站](https://www.asd-ste100.org/)与 [FAQ](https://www.asd-ste100.org/STE_faq.html)。本仓库不打包官方规范 PDF、完整词典或未知许可正文。仓库 MIT 许可不授予这些第三方材料的再分发权。
