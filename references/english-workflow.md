@@ -1,6 +1,6 @@
 # English workflow — Simplified Technical English (ASD-STE100)
 
-Read this file only when the user explicitly asks for English-only output, including Chinese input that must become English. For Chinese or mixed Chinese-English output, use the Chinese rules in [../SKILL.md](../SKILL.md) instead. This workflow keeps the upstream English method and citations. It does not guarantee official STE compliance.
+Read this file only when the user explicitly asks for English-only output, including Chinese input that must become English. For Chinese or mixed Chinese-English output, use the Chinese rules in [../SKILL.md](../SKILL.md) instead. This workflow keeps the upstream English method and citations. It does not guarantee official STE compliance. Explicit user instructions take precedence over the style and format guidance here. The fidelity rules still apply unless the user explicitly asks to change the content.
 
 ASD-STE100 is a controlled-language standard built by the aerospace and defense industry (ASD, the AeroSpace and Defense Industries Association of Europe) to stop maintenance technicians from misreading English instructions. The standard removes the two biggest sources of misreading: words with more than one meaning, and sentences with more than one possible structure.
 
@@ -71,7 +71,7 @@ Aircraft manuals never need present perfect, so the exclusion costs the standard
 
 ## Scan Checklist
 
-These six habits cover most of what makes machine-written English hard to parse. Each one is mechanical: you can point at the exact word or punctuation mark that breaks the rule, with no judgment call. Scan for all six before you rewrite anything.
+These seven habits cover most of what makes machine-written English hard to parse. Each one is mechanical: you can point at the exact word or punctuation mark that breaks the rule, with no judgment call. Scan for all seven before you rewrite anything.
 
 1. **Synonym rotation** — the same thing gets several names in one document ("the user", "the customer", "the client"). The reader cannot tell whether they are one thing or three. Fix: pick one name, use it every time.
 2. **Hedge stacking** — helper verbs and qualifiers pile up until the sentence asserts nothing ("it is important to note that this may potentially help to improve"). Fix: state the claim, or delete it.
@@ -79,12 +79,24 @@ These six habits cover most of what makes machine-written English hard to parse.
 4. **Marketing adjectives** — words that claim quality instead of showing it: seamless, robust, powerful, cutting-edge, effortless, blazing-fast. Fix: delete, or replace with the measurement that earns the claim.
 5. **Run-on sentences** — several ideas joined by semicolons or em dashes. Fix: one idea per sentence.
 6. **Soft phrasal verbs** — spin up, reach out, dive into, kick off. Fix: use the single plain verb (start, contact, read, begin).
+7. **Stock phrases** — filler that frames a claim instead of making it: "delve", "foster", "leverage", "it's worth noting", "importantly", "genuinely", a closing "Bottom line:" or "In short:", a "Question? Answer." pattern, or "This isn't about X. It's about Y." Fix: state the claim directly, or delete the frame.
+
+### Structure and framing
+
+These checks need judgment, so the linter does not run them.
+
+- State the main point or the first action early, then add the conditions and detail the reader needs. In a procedure, keep the step order, and keep each condition and warning before its action.
+- Write explanations as paragraphs. Use a list only for steps, parallel conditions, or items the reader must compare. Avoid nested lists unless the hierarchy cannot be stated in prose.
+- Do not add contrastive framing ("X, not Y") that introduces an alternative the source did not mention. A contrast or negation that the source states is content: keep it.
+- Do not invent compound labels (such as "exact-head checks") or add vague qualifiers. Use plain verbs and prepositions to state the actual relationship.
+- Do not add statements about what the text will not do or what stays unchanged, unless the source states them.
+- Match the depth of term explanations to the reader's background, as shown by the request and its context.
 
 ## Process
 
 1. Pick the mode (Strict or STE-flavored). Keep it internal unless Output Contract says to show it.
 2. Read the input text once for meaning — do not start rewriting before you understand what it must still say afterward.
-3. Walk it sentence by sentence. Flag every rule violation from the Core Rewrite Rules tables and every habit from the Scan Checklist. In STE-flavored mode, flag the lexical rules but do not enforce them. For a mechanical first pass over the structural rules, run [`scripts/ste-lint.py`](../scripts/ste-lint.py) from the skill root (stdin or file args, `--json` for structured output); it checks semicolons, sentence length, phrasal verbs, nominalization, marketing adjectives, synonym rotation, dangling-conjunction in supported list items, passive voice, and compound tenses, and by design never flags hedges or modality. `--baseline N` tolerates N hard violations (for adopting on existing docs); `--disable rule1,rule2` silences named rules. Input that contains Han characters returns exit 2 (`not_checked`); extract the English text first.
+3. Walk it sentence by sentence. Flag every rule violation from the Core Rewrite Rules tables and every habit from the Scan Checklist. In STE-flavored mode, flag the lexical rules but do not enforce them. For a mechanical first pass over the structural rules, run [`scripts/ste-lint.py`](../scripts/ste-lint.py) from the skill root (stdin or file args, `--json` for structured output); it checks semicolons, sentence length, phrasal verbs, nominalization, marketing adjectives, synonym rotation, dangling-conjunction in supported list items, passive voice, and compound tenses, and by design never flags hedges or modality. `--baseline N` tolerates N hard violations (for adopting on existing docs); `--disable rule1,rule2` silences named rules. Input that contains Han characters returns exit 2 (`not_checked`); extract the English text first. The linter does not check stock phrases or the Structure and framing items; check those by reading.
 4. Rewrite each flagged sentence to fix the violation while preserving the original meaning exactly. If a rewrite would drop necessary precision (a safety condition, a scope qualifier, a number, a tense that carries current relevance, a hedge), keep the longer or compound phrasing instead of silently simplifying.
    - **Check modality before you commit to a rewrite.** Hedges ("may", "could", "sometimes", "is likely to") carry the author's confidence, and confidence is content. A shorter sentence that upgrades a hedge to a fact is not a simplification — it is a different claim. This is the most common way a well-intentioned STE rewrite goes wrong, because hedges are exactly what a length cap tempts you to cut.
    - Never add a fact the source did not state. A rewrite that reads better because it supplies a cause, a frequency, or a mechanism has stopped being a rewrite.

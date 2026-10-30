@@ -11,7 +11,7 @@
 
 ## 独立样例评审
 
-独立 gpt-6.1-sol / xhigh 完成四个真实请求的实际输出，再逐项对照原文作语义评审，未发现保真回归。不是按 regex 词匹配判定。所读 SKILL.md SHA-256：`801aa6b6f80fae335491c12af9889bea0862faeece66c81edeeb9fdf3e0d3304`。
+独立 gpt-6.1-sol / xhigh 完成四个真实请求的实际输出，再逐项对照原文作语义评审，未发现保真回归。不是按 regex 词匹配判定。所读 SKILL.md SHA-256：`801aa6b6f80fae335491c12af9889bea0862faeece66c81edeeb9fdf3e0d3304`（0.1.0 单文件版本）。
 
 - 导入操作：保留 `ready AND SHA-256 校验通过`，沙盒例外仅作用于 partial artifact 禁止；“应当 / 必须 / 不得”未改变。
 - 技术报告：保留时间窗口、p95 250/310 ms、120 次请求范围、未经确认的因果关系和英文日志原文。
@@ -31,6 +31,16 @@
 同轮审阅发现 CLI 汉字边界遗漏：旧范围止于 U+323AF，且未含 U+3007。修改前实跑 `〇`（U+3007）、扩展 J 首字 U+323B0 和末字 U+33479，均错误返回退出码 0、`hard_count=0`。现补入 U+3007，并把保守补充平面范围扩到 U+3347F；只修改拒绝边界，不改变英语检查逻辑。范围依据：[Unicode 17.0](https://www.unicode.org/versions/Unicode17.0.0/) 与 [Unicode 汉字 FAQ](https://www.unicode.org/faq/han_cjk.html)。
 
 增量验证通过：U+3007、现有汉字范围边界、U+323AF / U+323B0 / U+33479 / U+3347F 均退出 2 且 JSON 不含违规计数；相邻非覆盖字符 U+3006 / U+3008 / U+33480 保持原英语流程；正常/错误 ASCII 英语仍退出 0/1。stdin、文件与混合文件批次边界、原错误 fixture 的两条发现以及原英语 selftest 均通过。新增 CLI 边界正反例也保留在 `--selftest` 中。该范围包含部分未分配字符，是保守拒绝边界，不是完整语言识别。
+
+## 0.2.0 变更检查（2026-10-30）
+
+基线：`12a248747fe5faadf2aae463449b8e45b44a3eff`。本节只记录本轮实际运行的命令与结果。
+
+长 Markdown 围栏（#2）：`python3 scripts/ste-lint.py --selftest` 通过，新增用例覆盖 issue 列出的正例、marker / 长度反例、普通三字符围栏、EOF 未闭合、含汉字负对照，以及多文件状态隔离和 `--baseline` / `--disable`。把 `_fence_step` 换回旧的翻转逻辑后，同一自测失败；正文、列表项查找、列表项内部三个扫描器的用例在旧逻辑下分别误报第 3、3、4 行，新逻辑下只报围栏外的行或不报。纯 ASCII 四反引号围栏文件经 CLI 由旧版退出 1 变为退出 0；同一文件加入汉字后仍退出 2 且 JSON 为 `not_checked`。`examples/linter-edge-cases.md` 仍退出 1，恰有两条 `dangling-conjunction`。
+
+按目标语言加载英文规则（#3）：英文分支移入 [references/english-workflow.md](references/english-workflow.md)，英文示例移入 [examples/before-after-en.md](examples/before-after-en.md)。逐句比对旧英文分支，有 28 句改动，均为统一输出条件、更新相对路径或更新检查项数量；其余句子原样迁移。英文示例只改了文件头和一个相对链接。根 SKILL.md 与中文示例不含英文规则标记。全部 Markdown 相对链接可解析。
+
+写作风格（OpenAI [GPT-6 Astra 写作风格指引](https://developers.openai.com/api/docs/guides/latest-model#gpt-6-astra-personality-and-writing-style)）：新增用户明确要求优先、先写主要结论、段落优先、删除套话和原文没有的对比框架、区分模糊限定与置信度词、少追问等规则，并新增一个中文示例。这些规则不改变保真要求，英语检查器也不检查它们。
 
 ## 未验证范围
 
