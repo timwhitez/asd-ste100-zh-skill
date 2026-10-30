@@ -28,7 +28,7 @@ git clone https://github.com/timwhitez/asd-ste100-zh-skill.git ~/.claude/skills/
 用 asd-ste100-zh 消除歧义，并给出原文与改写的对比。
 ```
 
-默认只返回可直接使用的正文。需要解释时，要求“说明修改依据”或“展示前后对比”。英文片段、代码、命令、路径、标识符和原文引用不会擅自翻译。目标输出为纯英文时（包括中文输入要求英文输出），技能才读取 [references/english-workflow.md](references/english-workflow.md) 中保留的上游英文工作流（Strict / STE-flavored）。中文或中英混合输出只使用 [SKILL.md](SKILL.md) 的中文规则，中文里的命令、代码或英文引文不会触发英文规则。
+默认只返回可直接使用的正文。需要解释时，要求“说明修改依据”或“展示前后对比”。英文片段、代码、命令、路径、标识符和原文引用不会擅自翻译。技能按交付文本的语言路由：要求交付纯英文（包括中文输入要求英文输出），或改写、检查英文文本且没有要求译成中文时，才读取 [references/english-workflow.md](references/english-workflow.md) 中保留的上游英文工作流（Strict / STE-flavored），解释文字仍可使用用户的语言。中文或中英混合交付只使用 [SKILL.md](SKILL.md) 的中文规则，中文里的命令、代码或英文引文不会触发英文规则。
 
 | 原文 | 改写 |
 |---|---|
@@ -64,6 +64,6 @@ python3 scripts/ste-lint.py examples/linter-edge-cases.md --json
 - 锁定基线：[`7d4a135a199a5d7447c4886bcd7ffe742a627bc9`](https://github.com/danyuchn/asd-ste100-skill/tree/7d4a135a199a5d7447c4886bcd7ffe742a627bc9)，SKILL.md v0.4.0。
 - 上游 SKILL.md blob：`35579a421ff9b93452ecaf9dd01bbe6e51decff3`。
 - 上游 Git 历史与原 [MIT LICENSE](LICENSE) 完整保留：Copyright (c) 2026 Dustin Yuchen Teng。新增中文说明与代码改动同样以 MIT 许可发布。
-- [references/english-workflow.md](references/english-workflow.md) 与 [examples/before-after-en.md](examples/before-after-en.md) 保留上游英文方法、规则表与示例，仅供纯英文目标使用；示例内容未改写。
+- [references/english-workflow.md](references/english-workflow.md) 与 [examples/before-after-en.md](examples/before-after-en.md) 保留上游英文方法、规则表与示例，仅供英文交付文本使用；示例内容未改写。
 - [references/writing-rules.md](references/writing-rules.md) 保留上游英文规则类别概述与来源，仅供英文工作流参考；不是官方全文或当前词典的核验记录。
 - [ASD 官方网站](https://www.asd-ste100.org/)与 [FAQ](https://www.asd-ste100.org/STE_faq.html)。本仓库不打包官方规范 PDF、完整词典或未知许可正文。仓库 MIT 许可不授予这些第三方材料的再分发权。
