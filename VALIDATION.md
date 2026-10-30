@@ -38,7 +38,9 @@
 
 长 Markdown 围栏（#2）：`python3 scripts/ste-lint.py --selftest` 通过，新增用例覆盖 issue 列出的正例、marker / 长度反例、普通三字符围栏、EOF 未闭合、含汉字负对照，以及多文件状态隔离和 `--baseline` / `--disable`。把 `_fence_step` 换回旧的翻转逻辑后，同一自测失败；正文、列表项查找、列表项内部三个扫描器的用例在旧逻辑下分别误报第 3、3、4 行，新逻辑下只报围栏外的行或不报。纯 ASCII 四反引号围栏文件经 CLI 由旧版退出 1 变为退出 0；同一文件加入汉字后仍退出 2 且 JSON 为 `not_checked`。`examples/linter-edge-cases.md` 仍退出 1，恰有两条 `dangling-conjunction`。
 
-按目标语言加载英文规则（#3）：英文分支移入 [references/english-workflow.md](references/english-workflow.md)，英文示例移入 [examples/before-after-en.md](examples/before-after-en.md)。逐句比对旧英文分支，有 28 句改动，均为统一输出条件、更新相对路径或更新检查项数量；其余句子原样迁移。英文示例只改了文件头和一个相对链接。根 SKILL.md 与中文示例不含英文规则标记。全部 Markdown 相对链接可解析。
+按目标语言加载英文规则（#3）：英文分支移入 [references/english-workflow.md](references/english-workflow.md)，英文示例移入 [examples/before-after-en.md](examples/before-after-en.md)。逐句比对旧英文分支，有 28 句改动：统一输出条件（mode 不外露；原文已清楚时原样返回；`Kept as-is:` 覆盖超长、时态和 “may have failed” 这类保留置信度的情形；`Note:` 覆盖歧义、缺失信息和空洞内容；规则表、词典限制说明和术语表按请求给出），以及更新相对路径和检查项数量。其余句子原样迁移。英文示例只改了文件头和一个相对链接。根 SKILL.md 与中文示例不含英文规则标记。全部 Markdown 相对链接可解析。
+
+独立 verifier 审查 PR #4 后提出 3 个 should-fix 与 3 个 nit，已全部修正：恢复 “may have failed” 等保留置信度时的 `Kept as-is:` 说明；“先写主要结论”不得把任何文本类型中的条件移到动作之后；路由补充“交付的文本仍为英文”的情形；套话清单区分术语用法并把句式类条目移到 Structure and framing；新增中文示例保留推论关系；词典限制的说明时机统一为询问规则或合规时。
 
 写作风格（OpenAI [GPT-6 Astra 写作风格指引](https://developers.openai.com/api/docs/guides/latest-model#gpt-6-astra-personality-and-writing-style)）：新增用户明确要求优先、先写主要结论、段落优先、删除套话和原文没有的对比框架、区分模糊限定与置信度词、少追问等规则，并新增一个中文示例。这些规则不改变保真要求，英语检查器也不检查它们。
 

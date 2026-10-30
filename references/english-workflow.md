@@ -67,7 +67,7 @@ Apply the structural rules with confidence. Apply the lexical rules as a directi
 
 STE permits infinitive, imperative, simple present, simple past, simple future, and past participle as adjective. It excludes present perfect and other compound forms: "we received the report", not "we have received the report".
 
-Aircraft manuals never need present perfect, so the exclusion costs the standard nothing. Other text is not always so lucky. "The job has completed" (and its output is available now) and "the job completed" (at some past point) are different statements, and status text frequently needs the first. **Where the compound form carries information the simple form cannot — current relevance, or a hedge as in "may have failed" — keep it.** Output Contract says when the departure needs a note. Elsewhere, follow the rule.
+Aircraft manuals never need present perfect, so the exclusion costs the standard nothing. Other text is not always so lucky. "The job has completed" (and its output is available now) and "the job completed" (at some past point) are different statements, and status text frequently needs the first. **Where the compound form carries information the simple form cannot — current relevance, or a hedge as in "may have failed" — keep it and flag the departure with the `Kept as-is:` note described in Output Contract.** Elsewhere, follow the rule.
 
 ## Scan Checklist
 
@@ -79,14 +79,15 @@ These seven habits cover most of what makes machine-written English hard to pars
 4. **Marketing adjectives** — words that claim quality instead of showing it: seamless, robust, powerful, cutting-edge, effortless, blazing-fast. Fix: delete, or replace with the measurement that earns the claim.
 5. **Run-on sentences** — several ideas joined by semicolons or em dashes. Fix: one idea per sentence.
 6. **Soft phrasal verbs** — spin up, reach out, dive into, kick off. Fix: use the single plain verb (start, contact, read, begin).
-7. **Stock phrases** — filler that frames a claim instead of making it: "delve", "foster", "leverage", "it's worth noting", "importantly", "genuinely", a closing "Bottom line:" or "In short:", a "Question? Answer." pattern, or "This isn't about X. It's about Y." Fix: state the claim directly, or delete the frame.
+7. **Stock phrases** — filler words and openers that frame a claim instead of making it: "delve", "foster", "leverage" (as a verb meaning "use"), "it's worth noting", "importantly", "genuinely", or a closing "Bottom line:" or "In short:". Fix: state the claim directly, or delete the frame. A word that is a domain term in context, such as financial leverage, is not filler.
 
 ### Structure and framing
 
 These checks need judgment, so the linter does not run them.
 
-- State the main point or the first action early, then add the conditions and detail the reader needs. In a procedure, keep the step order, and keep each condition and warning before its action.
+- State the main point or the first action early, then add the detail the reader needs. In every text type, keep each condition and warning before the action it governs: putting the main point first never moves a condition after its action. In a procedure, also keep the step order.
 - Write explanations as paragraphs. Use a list only for steps, parallel conditions, or items the reader must compare. Avoid nested lists unless the hierarchy cannot be stated in prose.
+- Do not add canned sentence patterns such as "Question? Answer." or "This isn't about X. It's about Y."
 - Do not add contrastive framing ("X, not Y") that introduces an alternative the source did not mention. A contrast or negation that the source states is content: keep it.
 - Do not invent compound labels (such as "exact-head checks") or add vague qualifiers. Use plain verbs and prepositions to state the actual relationship.
 - Do not add statements about what the text will not do or what stays unchanged, unless the source states them.
@@ -112,7 +113,7 @@ This section is the single source for what the output shows. Explicit user instr
 
 **Short notes that stay in the default output.** Add a line after the text only in these cases, and omit it when there is nothing to report:
 
-- `Kept as-is:` — you kept a form that a structural rule would otherwise change, because the change would lose information: a sentence over the length cap that carries a condition, scope, or number; a compound tense that carries current relevance; any other phrasing kept for precision, tense, or confidence. Name the phrase and the information it keeps. A modal with a perfect infinitive, such as "may have failed", is a hedge: keep it and add no note.
+- `Kept as-is:` — you kept a form that a structural rule would otherwise change, because the change would lose information: a sentence over the length cap that carries a condition, scope, or number; a compound tense that carries current relevance; a modal with a perfect infinitive, such as "may have failed", kept to preserve a hedge; any other phrasing kept for precision, tense, or confidence. Name the phrase and the information it keeps. The linter does not flag the modal case, but the departure from the simple-tense rule still gets this note.
 - `Note:` — ambiguity or missing information blocks a faithful rewrite. Name the gap in one line. Ask the user only when the missing fact would change the result and the context cannot supply it. If the text has nothing to say, state what it lacks instead of polishing it. Never invent the missing facts.
 
 **On request: the rule table and the mode.** When the user asks to see the reasoning — "show the diff", "which rules did it break", "explain the changes", "before/after", or whether the text complies with STE — output this table instead:
@@ -126,7 +127,7 @@ This section is the single source for what the output shows. Explicit user instr
 Mode: Strict. 7 violations found.
 ```
 
-Follow the table with a one-line note on anything you deliberately did **not** simplify, and why (usually: simplifying would lose required precision). When the user asks about compliance, also say that the lexical rules were applied without ASD's dictionary and that the result is not a certified STE document.
+Follow the table with a one-line note on anything you deliberately did **not** simplify, and why (usually: simplifying would lose required precision). When the user asks about the rules or about compliance, also say that the lexical rules were applied without ASD's dictionary and that the result is not a certified STE document.
 
 **On request: glossary entries.** Suggest one-line glossary entries for domain terms only when the user asks for them.
 
